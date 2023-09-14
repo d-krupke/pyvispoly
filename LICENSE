@@ -1,3 +1,8 @@
+While the code of this library is free, it depends on CGAL which is only free for non-commercial purposes.
+If you want to use this library commercially, please make sure you have a proper license for CGAL.
+
+The remaining code in this repository is under:
+
 MIT License
 
 Copyright (c) 2023 Dominik Krupke
