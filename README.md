@@ -3,6 +3,11 @@
 This package provides a Python interface to the [CGAL](https://www.cgal.org/) library for computing visibility polygons.
 It is exact, but not necessarily efficient.
 
+**Motivation:** This package was developed in the context of implementing an
+exact solver for the dispersive Art Gallery Problem.
+Because the problem is difficult and only reasonably small instances can be solved,
+the focus of this package is on correctness and not on efficiency.
+
 > :warning: While the project code itself is free open source software (MIT), it depends on CGAL which may require a license for commercial use. See [CGAL license](https://www.cgal.org/license.html) for more information.
 
 ## Installation
