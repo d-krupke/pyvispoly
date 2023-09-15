@@ -1,3 +1,16 @@
+/**
+ * @file _cgal_bindings.cpp
+ * @author Dominik Krupke (d.krupke@tu-bs.de)
+ * @brief This file contains the pybind11 bindings for the CGAL library, which
+ *      is used to compute visibility polygons. We need CGAL with it exact
+ *      computations to ensure that the visibility polygons are computed
+ *     correctly.
+ * @version 0.1
+ * @date 2023-09-15
+ *
+ * @copyright Copyright (c) 2023
+ *
+ */
 
 // pybind11
 #include <pybind11/operators.h> // to define operator overloading
@@ -10,9 +23,10 @@
 #include <CGAL/Polygon_2.h>
 #include <CGAL/Polygon_with_holes_2.h>
 #include <CGAL/Triangular_expansion_visibility_2.h>
+#include <CGAL/Rotational_sweep_visibility_2.h>
 #include <CGAL/Arr_segment_traits_2.h>
 #include <CGAL/Arrangement_2.h>
-// #include <CGAL/Arr_naive_point_location.h>
+#include <CGAL/Arr_naive_point_location.h>
 //  fmt
 #include <fmt/core.h>
 
@@ -27,9 +41,10 @@ using Traits_2 = CGAL::Arr_segment_traits_2<Kernel>;
 using Arrangement_2 = CGAL::Arrangement_2<Traits_2>;
 using Halfedge_const_handle = Arrangement_2::Halfedge_const_handle;
 using Face_handle = Arrangement_2::Face_handle;
-
+using PointLocation = CGAL::Arr_naive_point_location<Arrangement_2>;
 // Define the used visibility class
 typedef CGAL::Triangular_expansion_visibility_2<Arrangement_2> TEV;
+// using TEV = CGAL::Rotational_sweep_visibility_2<Arrangement_2>;
 
 class VisibilityPolygonCalculator
 {
@@ -68,6 +83,7 @@ public:
       }
     }
     CGAL::insert_non_intersecting_curves(env, segments.begin(), segments.end());
+    pl = PointLocation(env);
     auto face = env.unbounded_face();
     if (face->number_of_holes() != 1 || !face->is_unbounded())
     {
@@ -96,6 +112,63 @@ public:
     return true;
   }
 
+
+
+  Face_handle get_visibility_face_handle(const Point &query_point, Arrangement_2 &output_arr)
+  {
+    /**
+     * @brief The following code is slighly more complex and inefficent than
+     * it may seem necessary. The reason is that it seems insufficient to just
+     * provide the face handle if the query point is on the boundary of the
+     * polygon. Instead, a point location has to be performed on the
+     * arrangement. Still not 100% sure if there is not some bug.
+     * The code looks complex because the iterators of the arrangement are
+     * old school C++ iterators, which are not very nice to use. Maybe there
+     * are better ways: The documentation of CGAL is old, too.
+     */
+    auto location = pl.locate(query_point);
+    const Arrangement_2::Vertex_const_handle *v;
+    const Arrangement_2::Halfedge_const_handle *e;
+    const Arrangement_2::Face_const_handle *f;
+    TEV tev(env);
+    if (f = boost::get<Arrangement_2::Face_const_handle>(&location)){
+      if (*f != interior_face)
+      {
+        throw std::runtime_error("Query point is in a face, but not in the interior face");
+      }
+      return tev.compute_visibility(query_point, interior_face, output_arr);
+    } else if (v = boost::get<Arrangement_2::Vertex_const_handle>(&location))
+    {
+      auto e_ = (*v)->incident_halfedges();
+      if(e_->face() == interior_face){
+        return tev.compute_visibility(query_point, e_, output_arr);
+      }
+      ++e_;
+      while(e_ != (*v)->incident_halfedges()){
+        if(e_->face() == interior_face){
+          return tev.compute_visibility(query_point, e_, output_arr);
+        }
+        ++e_;
+      }
+      throw std::runtime_error("Query point is on a vertex, but not in interior face");
+    } else if (e = boost::get<Arrangement_2::Halfedge_const_handle>(&location))
+    {
+      if ((*e)->face() == interior_face)
+      {
+        return tev.compute_visibility(query_point, *e, output_arr);
+      }
+      else if ((*e)->twin()->face() == interior_face)
+      {
+        return tev.compute_visibility(query_point, (*e)->twin(), output_arr);
+      }
+      else
+      {
+        throw std::runtime_error("Query point is on an edge, but not the interior face");
+      }
+    }
+    throw std::runtime_error("Unknown query point location");
+  }
+
   Polygon2 compute_visibility_polygon(const Point &query_point)
   {
     if (!is_feasible_query_point(query_point))
@@ -103,8 +176,7 @@ public:
       throw std::runtime_error("Query point not feasible");
     }
     Arrangement_2 output_arr;
-    TEV tev(env);
-    Face_handle fh = tev.compute_visibility(query_point, interior_face, output_arr);
+    Face_handle fh = get_visibility_face_handle(query_point, output_arr);
     Polygon2 poly;
     std::vector<Point> points;
     auto e = fh->outer_ccb();
@@ -121,6 +193,7 @@ public:
   Polygon2WithHoles polygon;
   Arrangement_2 env;
   Face_handle interior_face;
+  PointLocation pl;
 };
 
 // Getting this name right is important! It has to equal the name in the
@@ -186,6 +259,12 @@ PYBIND11_MODULE(_cgal_bindings, m)
           {
             return new Polygon2WithHoles(outer, holes.begin(), holes.end());
           }))
+      .def(py::init([](const Polygon2 &outer)
+                    { return new Polygon2WithHoles(outer); }))
+      .def(py::init([](const std::vector<Point> &outer_vertices)
+                    {
+                      auto poly = Polygon2(outer_vertices.begin(), outer_vertices.end());
+                      return new Polygon2WithHoles(poly); }))
       .def("outer_boundary",
            [](const Polygon2WithHoles &poly)
            { return poly.outer_boundary(); })
