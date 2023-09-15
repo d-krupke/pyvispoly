@@ -12,8 +12,8 @@
 #include <CGAL/Triangular_expansion_visibility_2.h>
 #include <CGAL/Arr_segment_traits_2.h>
 #include <CGAL/Arrangement_2.h>
-//#include <CGAL/Arr_naive_point_location.h>
-// fmt
+// #include <CGAL/Arr_naive_point_location.h>
+//  fmt
 #include <fmt/core.h>
 
 // Define CGAL types
@@ -79,8 +79,6 @@ public:
       throw std::runtime_error("Bad arrangement");
     }
   }
-
-
 
   bool is_feasible_query_point(const Point &query_point)
   {
@@ -196,7 +194,28 @@ PYBIND11_MODULE(_cgal_bindings, m)
         std::vector<Polygon2> holes;
         std::copy(poly.holes_begin(), poly.holes_end(),
                   std::back_inserter(holes));
-        return holes; });
+        return holes; })
+      .def("join", [](const Polygon2WithHoles &self, const Polygon2WithHoles &other)
+           {
+              std::vector<Polygon2WithHoles> result;
+              Polygon2WithHoles joined;
+              if(CGAL::join(self, other, joined)){
+                result.push_back(joined);
+              } else {
+                result.push_back(self);
+                result.push_back(other);
+              }
+              return result; })
+      .def("intersection", [](const Polygon2WithHoles &self, const Polygon2WithHoles &other)
+           {
+              std::vector<Polygon2WithHoles> result;
+              CGAL::intersection(self, other, std::back_inserter(result));
+              return result; })
+      .def("difference", [](const Polygon2WithHoles &self, const Polygon2WithHoles &other)
+           {
+              std::vector<Polygon2WithHoles> result;
+              CGAL::difference(self, other, std::back_inserter(result));
+              return result; });
 
   py::class_<VisibilityPolygonCalculator>(m, "VisibilityPolygonCalculator",
                                           "A class to compute visibility polygons.")
