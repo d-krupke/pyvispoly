@@ -7,7 +7,7 @@ option(CXX "enable C++ compilation" ON)
 if(CXX)
   enable_language(CXX)
 endif()
-project(pyvispoly CXX) 
+project(pyvispoly CXX)
 set(CMAKE_CXX_STANDARD 17) # Using C++-17 (most features with good support at
                            # 2022)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON) # The code needs to be compiled as PIC

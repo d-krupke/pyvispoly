@@ -3,6 +3,18 @@ This package just show cases how to use CGAL with PyBind11 with the help of skbu
 """
 
 # ._cgal_bindings will only exist after compilation.
-from ._cgal_bindings import FieldNumber, Point, Polygon, PolygonWithHoles, VisibilityPolygonCalculator
+from ._cgal_bindings import (
+    FieldNumber,
+    Point,
+    Polygon,
+    PolygonWithHoles,
+    VisibilityPolygonCalculator,
+)
 
-__all__ = ["FieldNumber", "Point", "Polygon", "PolygonWithHoles", "VisibilityPolygonCalculator"]
+__all__ = [
+    "FieldNumber",
+    "Point",
+    "Polygon",
+    "PolygonWithHoles",
+    "VisibilityPolygonCalculator",
+]
