@@ -37,10 +37,11 @@ vis_calculator = VisibilityPolygon(polygon)
 vis_polygon = vis_calculator.compute_visibility_polygon(Point(0.5, 0.5))
 
 import matplotlib.pyplot as plt
+
 fig, ax = plt.subplots()
 plot_polygon(polygon, ax=ax, alpha=0.2, color="blue")
 plot_polygon(vis_polygon, ax=ax, alpha=0.5, color="red")
 ax.plot(0.5, 0.5, "o", color="black")
-ax.set_aspect('equal', 'box')
+ax.set_aspect("equal", "box")
 plt.show()
 ```

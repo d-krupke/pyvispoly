@@ -243,43 +243,52 @@ PYBIND11_MODULE(_cgal_bindings, m) {
         return new Polygon2WithHoles(poly);
       }))
       .def(py::self == Polygon2WithHoles())
-      .def("outer_boundary",
-           [](const Polygon2WithHoles &self) { return self.outer_boundary(); },
-           "Returns a list with all holes (simple polygons).")
+      .def(
+          "outer_boundary",
+          [](const Polygon2WithHoles &self) { return self.outer_boundary(); },
+          "Returns a list with all holes (simple polygons).")
       .def("holes",
            [](const Polygon2WithHoles &poly) {
-            // Copy the holes into a vector so that PyBind11 can return it
-            // as a Python list.
+             // Copy the holes into a vector so that PyBind11 can return it
+             // as a Python list.
              std::vector<Polygon2> holes;
              std::copy(poly.holes_begin(), poly.holes_end(),
                        std::back_inserter(holes));
              return holes;
            })
-      .def("join",
-           [](const Polygon2WithHoles &self, const Polygon2WithHoles &other) {
-             std::vector<Polygon2WithHoles> result;
-             Polygon2WithHoles joined;
-             if (CGAL::join(self, other, joined)) {
-               result.push_back(joined);
-             } else {
-               result.push_back(self);
-               result.push_back(other);
-             }
-             return result;
-           }, "Joins two polygons (with holes) into a list of polygons (with holes).")
-      .def("intersection",
-           [](const Polygon2WithHoles &self, const Polygon2WithHoles &other) {
-             std::vector<Polygon2WithHoles> result;
-             CGAL::intersection(self, other, std::back_inserter(result));
-             return result;
-           },
-           "Computes the intersection of two polygons (with holes). Returns a list of polygons (with holes).")
-      .def("difference",
-           [](const Polygon2WithHoles &self, const Polygon2WithHoles &other) {
-             std::vector<Polygon2WithHoles> result;
-             CGAL::difference(self, other, std::back_inserter(result));
-             return result;
-           }, "Removes the area of the other polygon. Returns a list of polygons (with holes).");
+      .def(
+          "join",
+          [](const Polygon2WithHoles &self, const Polygon2WithHoles &other) {
+            std::vector<Polygon2WithHoles> result;
+            Polygon2WithHoles joined;
+            if (CGAL::join(self, other, joined)) {
+              result.push_back(joined);
+            } else {
+              result.push_back(self);
+              result.push_back(other);
+            }
+            return result;
+          },
+          "Joins two polygons (with holes) into a list of polygons (with "
+          "holes).")
+      .def(
+          "intersection",
+          [](const Polygon2WithHoles &self, const Polygon2WithHoles &other) {
+            std::vector<Polygon2WithHoles> result;
+            CGAL::intersection(self, other, std::back_inserter(result));
+            return result;
+          },
+          "Computes the intersection of two polygons (with holes). Returns a "
+          "list of polygons (with holes).")
+      .def(
+          "difference",
+          [](const Polygon2WithHoles &self, const Polygon2WithHoles &other) {
+            std::vector<Polygon2WithHoles> result;
+            CGAL::difference(self, other, std::back_inserter(result));
+            return result;
+          },
+          "Removes the area of the other polygon. Returns a list of polygons "
+          "(with holes).");
 
   py::class_<VisibilityPolygonCalculator>(
       m, "VisibilityPolygonCalculator",
