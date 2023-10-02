@@ -27,6 +27,7 @@
 #include <CGAL/Polygon_with_holes_2.h>
 #include <CGAL/Rotational_sweep_visibility_2.h>
 #include <CGAL/Triangular_expansion_visibility_2.h>
+#include <CGAL/create_straight_skeleton_2.h>
 //  fmt
 #include <fmt/core.h>
 
@@ -45,6 +46,48 @@ using PointLocation = CGAL::Arr_naive_point_location<Arrangement_2>;
 // Define the used visibility class
 typedef CGAL::Triangular_expansion_visibility_2<Arrangement_2> TEV;
 // using TEV = CGAL::Rotational_sweep_visibility_2<Arrangement_2>;
+
+std::vector<Point> get_sample_points(Polygon2& poly) {
+  std::vector<Point> points;
+  // compute skeleton
+  auto skeleton = CGAL::create_interior_straight_skeleton_2(poly.vertices_begin(), poly.vertices_end(), Kernel());
+  // use skeleton vertices as sample points
+  for(auto v = skeleton->vertices_begin(); v != skeleton->vertices_end(); ++v) {
+    auto p = v->point();
+    // check if point is on boundary
+    if(poly.bounded_side(p) == CGAL::ON_BOUNDARY) {
+      // we only want internal points
+      continue;
+    }
+    points.push_back(v->point());
+  }
+  return points;
+}
+
+std::vector<Point> get_sample_points_with_holes(Polygon2WithHoles& poly) {
+  std::vector<Point> points;
+  // compute skeleton
+  auto skeleton = CGAL::create_interior_straight_skeleton_2(poly.outer_boundary().vertices_begin(), poly.outer_boundary().vertices_end(), poly.holes_begin(), poly.holes_end(),
+  Kernel());
+  // use skeleton vertices as sample points
+  for(auto v = skeleton->vertices_begin(); v != skeleton->vertices_end(); ++v) {
+    auto p = v->point();
+
+    // check if point is on boundary
+    if(poly.outer_boundary().bounded_side(p) == CGAL::ON_BOUNDARY) {
+      // we only want internal points
+      continue;
+    }
+    if(std::any_of(poly.holes_begin(), poly.holes_end(), [&p](const Polygon2& hole){
+      return hole.bounded_side(p) == CGAL::ON_BOUNDARY;
+    })) {
+      // we only want internal points
+      continue;
+    }
+    points.push_back(v->point());
+  }
+  return points;
+}
 
 class VisibilityPolygonCalculator {
 public:
@@ -199,12 +242,21 @@ PYBIND11_MODULE(_cgal_bindings, m) {
       });
 
   // Points
-  py::class_<Point>(m, "Point", "A point in CGAL.")
+  py::class_<Point>(m, "Point", "A 2-dimensional point")
       .def(py::init<long, long>())
       .def(py::init<double, double>())
       .def(py::init<Kernel::FT, Kernel::FT>())
       .def("x", [](const Point &p) { return p.x(); })
       .def("y", [](const Point &p) { return p.y(); })
+      .def("__len__", [](const Point& self) { return 2;})
+      .def("__item__", [](const Point& self, int i){
+        if(i==0) {
+          return self.x();
+        } else if (i==1) {
+          return self.y();
+        }
+        throw std::out_of_range("Only 0=x and 1=y.");
+      })
       .def(py::self == Point())
       .def("__str__", [](const Point &p) {
         return fmt::format("({}, {})", CGAL::to_double(p.x()),
@@ -228,6 +280,13 @@ PYBIND11_MODULE(_cgal_bindings, m) {
            [](const Polygon2 &self, const Point &p) {
              return self.bounded_side(p) != CGAL::ON_UNBOUNDED_SIDE;
            })
+      .def("on_boundary", 
+           [](const Polygon2 &self, const Point &p) {
+             return self.bounded_side(p) == CGAL::ON_BOUNDARY;
+           })
+      .def("interior_sample_points", [](Polygon2 &self) {
+        return get_sample_points(self);
+      })
       .def("area", [](const Polygon2 &poly) { return poly.area(); });
 
   py::class_<Polygon2WithHoles>(m, "PolygonWithHoles",
@@ -240,7 +299,15 @@ PYBIND11_MODULE(_cgal_bindings, m) {
           [](const Polygon2 &outer) { return new Polygon2WithHoles(outer); }))
       .def(py::init([](const std::vector<Point> &outer_vertices) {
         auto poly = Polygon2(outer_vertices.begin(), outer_vertices.end());
-        return new Polygon2WithHoles(poly);
+        return Polygon2WithHoles(poly);
+      }))
+      .def(py::init([](const std::vector<Point> &outer_vertices, const std::vector<std::vector<Point>> &hole_vertices){
+        auto poly = Polygon2(outer_vertices.begin(), outer_vertices.end());
+        std::vector<Polygon2> holes;
+        for(auto hole_boundary: hole_vertices) {
+          holes.push_back(Polygon2(hole_boundary.begin(), hole_boundary.end()));
+        }
+        return Polygon2WithHoles(poly, holes.begin(), holes.end());
       }))
       .def(py::self == Polygon2WithHoles())
       .def(
@@ -256,6 +323,31 @@ PYBIND11_MODULE(_cgal_bindings, m) {
                        std::back_inserter(holes));
              return holes;
            })
+      .def("contains", [](Polygon2WithHoles& self, const Point& p){
+        if(self.outer_boundary().bounded_side(p) == CGAL::ON_UNBOUNDED_SIDE) {
+          return false;
+        }
+        for(auto hole: self.holes()){
+          if(hole.bounded_side(p) == CGAL::ON_BOUNDED_SIDE) {
+            return false;
+          }
+        }
+        return true;
+      })
+      .def("on_boundary", [](Polygon2WithHoles& self, const Point& p){
+        if(self.outer_boundary().bounded_side(p) == CGAL::ON_BOUNDARY) {
+          return true;
+        }
+        for(const auto& hole: self.holes()){
+          if(hole.bounded_side(p) == CGAL::ON_BOUNDARY) {
+            return true;
+          }
+        }
+        return false;
+      })  
+      .def("interior_sample_points", [](Polygon2WithHoles &self) {
+        return get_sample_points_with_holes(self);
+      })
       .def(
           "join",
           [](const Polygon2WithHoles &self, const Polygon2WithHoles &other) {
@@ -295,7 +387,11 @@ PYBIND11_MODULE(_cgal_bindings, m) {
       "A class to compute visibility polygons.")
       .def(py::init<Polygon2WithHoles &>())
       .def("compute_visibility_polygon",
-           &VisibilityPolygonCalculator::compute_visibility_polygon)
+           &VisibilityPolygonCalculator::compute_visibility_polygon, 
+           py::arg("query_point"),
+           "Compute the visibility polygon for a query point.")
       .def("is_feasible_query_point",
-           &VisibilityPolygonCalculator::is_feasible_query_point);
+           &VisibilityPolygonCalculator::is_feasible_query_point,
+           py::arg("query_point"),
+           "Check if the query point is within the polygon.");
 }
