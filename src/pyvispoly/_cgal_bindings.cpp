@@ -130,12 +130,12 @@ public:
   }
 
   bool is_feasible_query_point(const Point &query_point) {
-    if (polygon.outer_boundary().oriented_side(query_point) ==
-        CGAL::ON_NEGATIVE_SIDE) {
+    if (polygon.outer_boundary().bounded_side(query_point) ==
+        CGAL::ON_UNBOUNDED_SIDE) {
       return false;
     }
     for (const auto &hole : polygon.holes()) {
-      if (hole.oriented_side(query_point) == CGAL::ON_POSITIVE_SIDE) {
+      if (hole.bounded_side(query_point) == CGAL::ON_BOUNDED_SIDE) {
         return false;
       }
     }
