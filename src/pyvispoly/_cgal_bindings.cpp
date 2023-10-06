@@ -47,15 +47,17 @@ using PointLocation = CGAL::Arr_naive_point_location<Arrangement_2>;
 typedef CGAL::Triangular_expansion_visibility_2<Arrangement_2> TEV;
 // using TEV = CGAL::Rotational_sweep_visibility_2<Arrangement_2>;
 
-std::vector<Point> get_sample_points(Polygon2& poly) {
+std::vector<Point> get_sample_points(Polygon2 &poly) {
   std::vector<Point> points;
   // compute skeleton
-  auto skeleton = CGAL::create_interior_straight_skeleton_2(poly.vertices_begin(), poly.vertices_end(), Kernel());
+  auto skeleton = CGAL::create_interior_straight_skeleton_2(
+      poly.vertices_begin(), poly.vertices_end(), Kernel());
   // use skeleton vertices as sample points
-  for(auto v = skeleton->vertices_begin(); v != skeleton->vertices_end(); ++v) {
+  for (auto v = skeleton->vertices_begin(); v != skeleton->vertices_end();
+       ++v) {
     auto p = v->point();
     // check if point is on boundary
-    if(poly.bounded_side(p) == CGAL::ON_BOUNDARY) {
+    if (poly.bounded_side(p) == CGAL::ON_BOUNDARY) {
       // we only want internal points
       continue;
     }
@@ -64,23 +66,27 @@ std::vector<Point> get_sample_points(Polygon2& poly) {
   return points;
 }
 
-std::vector<Point> get_sample_points_with_holes(Polygon2WithHoles& poly) {
+std::vector<Point> get_sample_points_with_holes(Polygon2WithHoles &poly) {
   std::vector<Point> points;
   // compute skeleton
-  auto skeleton = CGAL::create_interior_straight_skeleton_2(poly.outer_boundary().vertices_begin(), poly.outer_boundary().vertices_end(), poly.holes_begin(), poly.holes_end(),
-  Kernel());
+  auto skeleton = CGAL::create_interior_straight_skeleton_2(
+      poly.outer_boundary().vertices_begin(),
+      poly.outer_boundary().vertices_end(), poly.holes_begin(),
+      poly.holes_end(), Kernel());
   // use skeleton vertices as sample points
-  for(auto v = skeleton->vertices_begin(); v != skeleton->vertices_end(); ++v) {
+  for (auto v = skeleton->vertices_begin(); v != skeleton->vertices_end();
+       ++v) {
     auto p = v->point();
 
     // check if point is on boundary
-    if(poly.outer_boundary().bounded_side(p) == CGAL::ON_BOUNDARY) {
+    if (poly.outer_boundary().bounded_side(p) == CGAL::ON_BOUNDARY) {
       // we only want internal points
       continue;
     }
-    if(std::any_of(poly.holes_begin(), poly.holes_end(), [&p](const Polygon2& hole){
-      return hole.bounded_side(p) == CGAL::ON_BOUNDARY;
-    })) {
+    if (std::any_of(poly.holes_begin(), poly.holes_end(),
+                    [&p](const Polygon2 &hole) {
+                      return hole.bounded_side(p) == CGAL::ON_BOUNDARY;
+                    })) {
       // we only want internal points
       continue;
     }
@@ -249,15 +255,16 @@ PYBIND11_MODULE(_cgal_bindings, m) {
       .def(py::init<Kernel::FT, Kernel::FT>())
       .def("x", [](const Point &p) { return p.x(); })
       .def("y", [](const Point &p) { return p.y(); })
-      .def("__len__", [](const Point& self) { return 2;})
-      .def("__item__", [](const Point& self, int i){
-        if(i==0) {
-          return self.x();
-        } else if (i==1) {
-          return self.y();
-        }
-        throw std::out_of_range("Only 0=x and 1=y.");
-      })
+      .def("__len__", [](const Point &self) { return 2; })
+      .def("__item__",
+           [](const Point &self, int i) {
+             if (i == 0) {
+               return self.x();
+             } else if (i == 1) {
+               return self.y();
+             }
+             throw std::out_of_range("Only 0=x and 1=y.");
+           })
       .def(py::self == Point())
       .def("__str__", [](const Point &p) {
         return fmt::format("({}, {})", CGAL::to_double(p.x()),
@@ -281,49 +288,48 @@ PYBIND11_MODULE(_cgal_bindings, m) {
            [](const Polygon2 &self, const Point &p) {
              return self.bounded_side(p) != CGAL::ON_UNBOUNDED_SIDE;
            })
-      .def("on_boundary", 
+      .def("on_boundary",
            [](const Polygon2 &self, const Point &p) {
              return self.bounded_side(p) == CGAL::ON_BOUNDARY;
            })
-      .def("interior_sample_points", [](Polygon2 &self) {
-        return get_sample_points(self);
-      })
+      .def("interior_sample_points",
+           [](Polygon2 &self) { return get_sample_points(self); })
       .def("area", [](const Polygon2 &poly) { return poly.area(); });
 
   py::class_<Polygon2WithHoles>(m, "PolygonWithHoles",
                                 "A polygon with holes in CGAL.")
-      .def(py::init(
-          [](const Polygon2 &outer, const std::vector<Polygon2> &holes) {
-            for(const auto& hole_poly: holes) {
-              if(hole_poly.area()>=0) {
-                throw std::runtime_error("Hole is not clockwise oriented");
-              }
-            }
-            if (outer.area() <= 0) {
-              throw std::runtime_error("Polygon is not counterclockwise oriented");
-            }
-            return Polygon2WithHoles(outer, holes.begin(), holes.end());
-          }))
-      .def(py::init(
-          [](const Polygon2 &outer) {
-            if (outer.area() <= 0) {
-              throw std::runtime_error("Polygon is not counterclockwise oriented");
-            }
-             return Polygon2WithHoles(outer);
-              }))
+      .def(py::init([](const Polygon2 &outer,
+                       const std::vector<Polygon2> &holes) {
+        for (const auto &hole_poly : holes) {
+          if (hole_poly.area() >= 0) {
+            throw std::runtime_error("Hole is not clockwise oriented");
+          }
+        }
+        if (outer.area() <= 0) {
+          throw std::runtime_error("Polygon is not counterclockwise oriented");
+        }
+        return Polygon2WithHoles(outer, holes.begin(), holes.end());
+      }))
+      .def(py::init([](const Polygon2 &outer) {
+        if (outer.area() <= 0) {
+          throw std::runtime_error("Polygon is not counterclockwise oriented");
+        }
+        return Polygon2WithHoles(outer);
+      }))
       .def(py::init([](const std::vector<Point> &outer_vertices) {
         auto poly = Polygon2(outer_vertices.begin(), outer_vertices.end());
         return Polygon2WithHoles(poly);
       }))
-      .def(py::init([](const std::vector<Point> &outer_vertices, const std::vector<std::vector<Point>> &hole_vertices){
+      .def(py::init([](const std::vector<Point> &outer_vertices,
+                       const std::vector<std::vector<Point>> &hole_vertices) {
         auto poly = Polygon2(outer_vertices.begin(), outer_vertices.end());
-        if(poly.area()<=0) {
+        if (poly.area() <= 0) {
           throw std::runtime_error("Polygon is not counterclockwise oriented");
         }
         std::vector<Polygon2> holes;
-        for(auto hole_boundary: hole_vertices) {
+        for (auto hole_boundary : hole_vertices) {
           auto hole_poly = Polygon2(hole_boundary.begin(), hole_boundary.end());
-          if (hole_poly.area()>=0) {
+          if (hole_poly.area() >= 0) {
             throw std::runtime_error("Hole is not clockwise oriented");
           }
           holes.push_back(hole_poly);
@@ -344,31 +350,35 @@ PYBIND11_MODULE(_cgal_bindings, m) {
                        std::back_inserter(holes));
              return holes;
            })
-      .def("contains", [](Polygon2WithHoles& self, const Point& p){
-        if(self.outer_boundary().bounded_side(p) == CGAL::ON_UNBOUNDED_SIDE) {
-          return false;
-        }
-        for(auto hole: self.holes()){
-          if(hole.bounded_side(p) == CGAL::ON_BOUNDED_SIDE) {
-            return false;
-          }
-        }
-        return true;
-      })
-      .def("on_boundary", [](Polygon2WithHoles& self, const Point& p){
-        if(self.outer_boundary().bounded_side(p) == CGAL::ON_BOUNDARY) {
-          return true;
-        }
-        for(const auto& hole: self.holes()){
-          if(hole.bounded_side(p) == CGAL::ON_BOUNDARY) {
-            return true;
-          }
-        }
-        return false;
-      })  
-      .def("interior_sample_points", [](Polygon2WithHoles &self) {
-        return get_sample_points_with_holes(self);
-      })
+      .def("contains",
+           [](Polygon2WithHoles &self, const Point &p) {
+             if (self.outer_boundary().bounded_side(p) ==
+                 CGAL::ON_UNBOUNDED_SIDE) {
+               return false;
+             }
+             for (auto hole : self.holes()) {
+               if (hole.bounded_side(p) == CGAL::ON_BOUNDED_SIDE) {
+                 return false;
+               }
+             }
+             return true;
+           })
+      .def("on_boundary",
+           [](Polygon2WithHoles &self, const Point &p) {
+             if (self.outer_boundary().bounded_side(p) == CGAL::ON_BOUNDARY) {
+               return true;
+             }
+             for (const auto &hole : self.holes()) {
+               if (hole.bounded_side(p) == CGAL::ON_BOUNDARY) {
+                 return true;
+               }
+             }
+             return false;
+           })
+      .def("interior_sample_points",
+           [](Polygon2WithHoles &self) {
+             return get_sample_points_with_holes(self);
+           })
       .def(
           "join",
           [](const Polygon2WithHoles &self, const Polygon2WithHoles &other) {
@@ -408,7 +418,7 @@ PYBIND11_MODULE(_cgal_bindings, m) {
       "A class to compute visibility polygons.")
       .def(py::init<Polygon2WithHoles &>())
       .def("compute_visibility_polygon",
-           &VisibilityPolygonCalculator::compute_visibility_polygon, 
+           &VisibilityPolygonCalculator::compute_visibility_polygon,
            py::arg("query_point"),
            "Compute the visibility polygon for a query point.")
       .def("is_feasible_query_point",

@@ -34,12 +34,25 @@ Pythons inexact floating point numbers.
 
 ```python
 # import elements from pyvispoly
-from pyvispoly import FieldNumber, Point, Polygon, PolygonWithHoles, VisibilityPolygonCalculator, plot_polygon
+from pyvispoly import (
+    FieldNumber,
+    Point,
+    Polygon,
+    PolygonWithHoles,
+    VisibilityPolygonCalculator,
+    plot_polygon,
+)
 import matplotlib.pyplot as plt
 
 # Polygon with holes
-poly1 = PolygonWithHoles([Point(0, 0), Point(1, 0), Point(1, 1), Point(0, 1)],
-                         [[Point(0.25, 0.25), Point(0.75, 0.25), Point(0.75, 0.75), Point(0.25, 0.75)][::-1]])
+poly1 = PolygonWithHoles(
+    [Point(0, 0), Point(1, 0), Point(1, 1), Point(0, 1)],
+    [
+        [Point(0.25, 0.25), Point(0.75, 0.25), Point(0.75, 0.75), Point(0.25, 0.75)][
+            ::-1
+        ]
+    ],
+)
 poly2 = PolygonWithHoles([Point(0, 0), Point(0.1, 0), Point(0.1, 0.1), Point(0, 0.1)])
 poly = poly1.difference(poly2)
 
@@ -48,11 +61,11 @@ visp_poly_calc = VisibilityPolygonCalculator(poly)
 vis_poly = visp_poly_calc.compute_visibility_polygon(Point(0.2, 0.0))
 
 fig, ax = plt.subplots()
-ax.set_aspect('equal')
+ax.set_aspect("equal")
 plt.title("Visibility Polygon")
 plot_polygon(poly, ax=ax, color="lightgrey")
-plot_polygon(vis_poly, ax=ax, color='red', alpha=0.5)
-plt.plot([0.2], [0.0], 'x', color='black')
+plot_polygon(vis_poly, ax=ax, color="red", alpha=0.5)
+plt.plot([0.2], [0.0], "x", color="black")
 plt.show()
 ```
 
