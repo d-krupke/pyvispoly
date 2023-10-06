@@ -230,6 +230,7 @@ PYBIND11_MODULE(_cgal_bindings, m) {
       .def(py::init<double>())
       .def(py::self / Kernel::FT())
       .def(py::self + Kernel::FT())
+      .def(py::self - Kernel::FT())
       .def(py::self * Kernel::FT())
       .def(py::self == Kernel::FT())
       .def(py::self < Kernel::FT())
@@ -293,19 +294,39 @@ PYBIND11_MODULE(_cgal_bindings, m) {
                                 "A polygon with holes in CGAL.")
       .def(py::init(
           [](const Polygon2 &outer, const std::vector<Polygon2> &holes) {
-            return new Polygon2WithHoles(outer, holes.begin(), holes.end());
+            for(const auto& hole_poly: holes) {
+              if(hole_poly.area()>=0) {
+                throw std::runtime_error("Hole is not clockwise oriented");
+              }
+            }
+            if (outer.area() <= 0) {
+              throw std::runtime_error("Polygon is not counterclockwise oriented");
+            }
+            return Polygon2WithHoles(outer, holes.begin(), holes.end());
           }))
       .def(py::init(
-          [](const Polygon2 &outer) { return new Polygon2WithHoles(outer); }))
+          [](const Polygon2 &outer) {
+            if (outer.area() <= 0) {
+              throw std::runtime_error("Polygon is not counterclockwise oriented");
+            }
+             return Polygon2WithHoles(outer);
+              }))
       .def(py::init([](const std::vector<Point> &outer_vertices) {
         auto poly = Polygon2(outer_vertices.begin(), outer_vertices.end());
         return Polygon2WithHoles(poly);
       }))
       .def(py::init([](const std::vector<Point> &outer_vertices, const std::vector<std::vector<Point>> &hole_vertices){
         auto poly = Polygon2(outer_vertices.begin(), outer_vertices.end());
+        if(poly.area()<=0) {
+          throw std::runtime_error("Polygon is not counterclockwise oriented");
+        }
         std::vector<Polygon2> holes;
         for(auto hole_boundary: hole_vertices) {
-          holes.push_back(Polygon2(hole_boundary.begin(), hole_boundary.end()));
+          auto hole_poly = Polygon2(hole_boundary.begin(), hole_boundary.end());
+          if (hole_poly.area()>=0) {
+            throw std::runtime_error("Hole is not clockwise oriented");
+          }
+          holes.push_back(hole_poly);
         }
         return Polygon2WithHoles(poly, holes.begin(), holes.end());
       }))

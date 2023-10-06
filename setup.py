@@ -5,7 +5,7 @@ setup(  # https://scikit-build.readthedocs.io/en/latest/usage.html#setup-options
     name="pyvispoly",
     version="0.1.0",
     author="Dominik Krupke",
-    license="LICENSE.txt",
+    license="LICENSE",
     description="README.md",
     packages=find_packages("src"),  # Include all packages in `./src`.
     package_dir={"": "src"},  # The root for our python package is in `./src`.

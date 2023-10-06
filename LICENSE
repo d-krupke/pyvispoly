@@ -1,7 +1,6 @@
-While the code of this library is free, it depends on CGAL which is only free for non-commercial purposes.
-If you want to use this library commercially, please make sure you have a proper license for CGAL.
-
-The remaining code in this repository is under:
+This library statically links to parts of CGAL, which are licensed under GPL, making this library also GPL.
+If you have a special (commercial) license for CGAL, this library (without the CGAL component)
+is under the more generous MIT license (as most of my code).
 
 MIT License
 
