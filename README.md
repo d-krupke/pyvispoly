@@ -58,6 +58,8 @@ plt.show()
 
 ![Visibility Polygon](https://github.com/d-krupke/pyvispoly/blob/main/docs/figures/visibility_polygon.png?raw=true)
 
+See [this examples](https://github.com/d-krupke/pyvispoly/blob/main/examples/simple_example.ipynb) for a more details.
+
 ## License
 
 This library statically links to parts of CGAL, which are licensed under GPL, making this library also GPL.
