@@ -1,13 +1,23 @@
 from skbuild_conan import setup
 from setuptools import find_packages
 
+
+
+def readme():
+    """
+    :return: Content of README.md
+    """
+    with open("README.md") as file:
+        return file.read()
+
 setup(  # https://scikit-build.readthedocs.io/en/latest/usage.html#setup-options
     name="pyvispoly",
-    version="0.1.1",
+    version="0.1.2",
     author="Dominik Krupke",
     license="LICENSE",
-    description="README.md",
-    long_description="README.md",
+    description="CGAL's visibility polygons in Python",
+    long_description=readme(),
+    long_description_content_type="text/markdown",
     packages=find_packages("src"),  # Include all packages in `./src`.
     package_dir={"": "src"},  # The root for our python package is in `./src`.
     python_requires=">=3.7",  # lowest python version supported.
