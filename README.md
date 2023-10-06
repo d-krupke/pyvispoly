@@ -16,6 +16,12 @@ You can install the package using pip:
 pip install --verbose .
 ```
 
+or directly via PyPI:
+
+```bash
+pip install --verbose pyvispoly
+```
+
 During installation, it will download and install CGAL and its dependencies. This may take a while.
 
 ## Challenges of visibility polygon computation
