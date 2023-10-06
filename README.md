@@ -54,7 +54,7 @@ plt.plot([0.2], [0.0], 'x', color='black')
 plt.show()
 ```
 
-![Visibility Polygon](https://raw.githubusercontent.com/dominikkrupke/pyvispoly/master/docs/figures/visibility_polygon.png)
+![Visibility Polygon](https://github.com/d-krupke/pyvispoly/blob/main/docs/figures/visibility_polygon.png?raw=true)
 
 ## License
 
