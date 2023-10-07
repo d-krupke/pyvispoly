@@ -1,6 +1,5 @@
-from skbuild_conan import setup
 from setuptools import find_packages
-
+from skbuild_conan import setup
 
 
 def readme():
@@ -10,7 +9,10 @@ def readme():
     with open("README.md") as file:
         return file.read()
 
-setup(  # https://scikit-build.readthedocs.io/en/latest/usage.html#setup-options
+
+setup(
+    # https://scikit-build.readthedocs.io/en/latest/usage.html#setup-options
+    # https://github.com/d-krupke/skbuild-conan#usage
     name="pyvispoly",
     version="0.1.2",
     author="Dominik Krupke",

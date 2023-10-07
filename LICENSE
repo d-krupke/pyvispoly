@@ -1,6 +1,9 @@
-This library statically links to parts of CGAL, which are licensed under GPL, making this library also GPL.
-If you have a special (commercial) license for CGAL, this library (without the CGAL component)
-is under the more generous MIT license (as most of my code).
+This library incorporates components from the CGAL library through static linking, which are subject to the terms of the GNU General Public License (GPL).
+Consequently, the use and distribution of this library are also governed by the GPL.
+
+However, if you possess a specialized (commercial) license for CGAL (or replace CGAL), then the portions of this library excluding the CGAL component are available under the more permissive MIT license, consistent with the licensing of my other code.
+
+Please ensure you understand the implications of these licenses before using or distributing this library.
 
 MIT License
 

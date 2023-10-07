@@ -3,8 +3,9 @@ Some plotting utilities for polygons.
 
 2023, Dominik Krupke, TU Braunschweig
 """
-import matplotlib.pyplot as plt
 import typing
+
+import matplotlib.pyplot as plt
 
 from ._cgal_bindings import Polygon, PolygonWithHoles
 

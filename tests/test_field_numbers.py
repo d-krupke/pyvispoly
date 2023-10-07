@@ -1,4 +1,4 @@
-from pyvispoly import FieldNumber, Point, Polygon, PolygonWithHoles
+from pyvispoly import FieldNumber
 
 
 def test_field_number():

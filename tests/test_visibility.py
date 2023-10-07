@@ -1,5 +1,7 @@
 from pyvispoly import (
-    FieldNumber,
+    FieldNumber as FT,
+)
+from pyvispoly import (
     Point,
     Polygon,
     PolygonWithHoles,
@@ -9,25 +11,19 @@ from pyvispoly import (
 
 def test_contains():
     boundary = [
-        Point(FieldNumber(0), FieldNumber(0)),
-        Point(FieldNumber(0), FieldNumber(1)),
-        Point(FieldNumber(1), FieldNumber(1)),
-        Point(FieldNumber(1), FieldNumber(0)),
+        Point(FT(0), FT(0)),
+        Point(FT(0), FT(1)),
+        Point(FT(1), FT(1)),
+        Point(FT(1), FT(0)),
     ]
     polygon = Polygon(boundary[::-1])
-    assert polygon.contains(Point(FieldNumber(0.5), FieldNumber(0.5))) == True
-    assert polygon.contains(Point(FieldNumber(1.5), FieldNumber(0.5))) == False
+    assert polygon.contains(Point(FT(0.5), FT(0.5)))
+    assert not polygon.contains(Point(FT(1.5), FT(0.5)))
     print(str(polygon.area()))
-    assert polygon.area() > FieldNumber(0)
+    assert polygon.area() > FT(0)
     polygon_with_holes = PolygonWithHoles(polygon, [])
     vispoly = VisibilityPolygonCalculator(polygon_with_holes)
-    assert (
-        vispoly.is_feasible_query_point(Point(FieldNumber(1.5), FieldNumber(0.5)))
-        == False
-    )
-    assert (
-        vispoly.is_feasible_query_point(Point(FieldNumber(0.5), FieldNumber(0.5)))
-        == True
-    )
-    vis = vispoly.compute_visibility_polygon(Point(FieldNumber(0.5), FieldNumber(0.5)))
-    assert vis.area() == FieldNumber(1)
+    assert not vispoly.is_feasible_query_point(Point(FT(1.5), FT(0.5)))
+    assert vispoly.is_feasible_query_point(Point(FT(0.5), FT(0.5)))
+    vis = vispoly.compute_visibility_polygon(Point(FT(0.5), FT(0.5)))
+    assert vis.area() == FT(1)
