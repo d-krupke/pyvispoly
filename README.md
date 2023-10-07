@@ -4,7 +4,7 @@ This package provides a Python interface to the [CGAL](https://www.cgal.org/) li
 It is exact, but not necessarily efficient.
 
 **Motivation:** This package was developed in the context of implementing an
-exact solver for the dispersive Art Gallery Problem.
+exact solver for the dispersive Art Gallery Problem ([see here](https://github.com/d-krupke/dispersive_agp_solver)).
 Because the problem is difficult and only reasonably small instances can be solved,
 the focus of this package is on correctness and not on efficiency.
 
