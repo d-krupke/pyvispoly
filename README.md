@@ -203,3 +203,7 @@ of my other code.
 
 Please ensure you understand the implications of these licenses before using or
 distributing this library.
+
+## Changelog
+
+* **0.1.3:** (2023-11-29) Workaround to bug in CGAL.

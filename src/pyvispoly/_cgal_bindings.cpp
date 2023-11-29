@@ -407,7 +407,7 @@ PYBIND11_MODULE(_cgal_bindings, m) {
           "difference",
           [](const Polygon2WithHoles &self, const Polygon2WithHoles &other) {
             std::vector<Polygon2WithHoles> result;
-            CGAL::difference(self, other, std::back_inserter(result));
+            CGAL::difference(self, other, std::back_inserter(result), CGAL::Tag_false{});
             return result;
           },
           "Removes the area of the other polygon. Returns a list of polygons "
