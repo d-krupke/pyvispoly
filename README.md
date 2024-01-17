@@ -208,3 +208,4 @@ distributing this library.
 ## Changelog
 
 * **0.2.0** Made the library more robust and added a `repair`-method as the boolean operations are not always guaranteed to produce valid polygons. Note that this is just kind of a hack and may not always work.
+* **0.1.3:** (2023-11-29) Workaround to bug in CGAL.
