@@ -129,10 +129,11 @@ public:
     if (face->number_of_holes() != 1 || !face->is_unbounded()) {
       throw std::runtime_error("Bad arrangement");
     }
-    interior_face = face->holes_begin()->ptr()->twin()->face();
-    if (interior_face->is_unbounded()) {
+    auto f = face->holes_begin()->ptr()->twin()->face();
+    if (f->is_unbounded()) {
       throw std::runtime_error("Bad arrangement");
     }
+    interior_face = f;
   }
 
   bool is_feasible_query_point(const Point &query_point) {
@@ -222,6 +223,83 @@ public:
   Face_handle interior_face;
   PointLocation pl;
 };
+
+
+template<typename EdgeHandle>
+Polygon2 _boundary_to_polygon(const EdgeHandle &e) {
+  Polygon2 poly;
+  std::vector<Point> points;
+  auto e_ = e;
+  points.push_back(e_->source()->point());
+  ++e_;
+  while (e_ != e) {
+    points.push_back(e_->source()->point());
+    ++e_;
+  }
+  return Polygon2(points.begin(), points.end());
+}
+
+template<typename FaceHandle>
+Polygon2 _face_to_polygon(const FaceHandle &fh) {
+  assert (!fh->is_unbounded());
+  return _boundary_to_polygon(fh->outer_ccb());
+}
+
+Arrangement_2 _polygon_to_arrangement(const Polygon2WithHoles & poly) {
+  // Create a new arrangement from a polygon with holes
+  Arrangement_2 env;
+  std::vector<Segment2> segments;
+  // Add the outer boundary
+  for (const auto e : poly.outer_boundary().edges()) {
+    auto s = e.source();
+    auto t = e.target();
+    auto seg = Segment2(s, t);
+    segments.push_back(seg);
+  }
+  // Add the holes
+  for (const auto &hole : poly.holes()) {
+    for (const auto e : hole.edges()) {
+      auto s = e.source();
+      auto t = e.target();
+      auto seg = Segment2(s, t);
+      segments.push_back(seg);
+    }
+  }
+  // Insert the segments into the arrangement
+  CGAL::insert(env, segments.begin(), segments.end());
+  return env;
+}
+
+std::vector<Polygon2WithHoles> repair(const Polygon2WithHoles &poly) {
+  // Repair a polygon with holes that is self intersecting.
+  // Use arrangements to separate the polygons.
+
+  // Create an arrangement
+  Arrangement_2 env = _polygon_to_arrangement(poly);
+  std::vector<Polygon2WithHoles> result;
+  // Get the faces
+  for(auto f = env.faces_begin(); f != env.faces_end(); ++f) {
+    // Face is a polygon if it is adjacent to the unbounded face
+    if(f->is_unbounded()) {
+      continue;
+    }
+    if(!f->outer_ccb()->twin()->face()->is_unbounded()) {
+      continue;
+    }
+    // face to polygon with holes
+    // outer boundary
+    auto outer_boundary = _face_to_polygon(f);
+    // holes
+    std::vector<Polygon2> holes;
+    for(auto h = f->holes_begin(); h != f->holes_end(); ++h) {
+      // h is Ccb_halfedge_circulator
+      holes.push_back(_boundary_to_polygon(*h));
+      assert (holes.back().area() < 0);
+    }
+    result.push_back(Polygon2WithHoles(outer_boundary, holes.begin(), holes.end()));
+  }
+  return result;
+}
 
 // Getting this name right is important! It has to equal the name in the
 // CMakeLists.txt.
@@ -425,4 +503,8 @@ PYBIND11_MODULE(_cgal_bindings, m) {
            &VisibilityPolygonCalculator::is_feasible_query_point,
            py::arg("query_point"),
            "Check if the query point is within the polygon.");
+
+  m.def("repair", &repair, "Repair a polygon with holes that is self "
+                           "intersecting. Returns a list of polygons with "
+                           "holes.");
 }
