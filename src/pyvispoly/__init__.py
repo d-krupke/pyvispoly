@@ -11,6 +11,7 @@ from ._cgal_bindings import (
     Polygon,
     PolygonWithHoles,
     VisibilityPolygonCalculator,
+    repair,
 )
 from .plotting import plot_polygon
 
@@ -21,4 +22,5 @@ __all__ = [
     "PolygonWithHoles",
     "VisibilityPolygonCalculator",
     "plot_polygon",
+    "repair",
 ]

@@ -326,7 +326,9 @@ std::vector<Polygon2WithHoles> repair(const Polygon2WithHoles &poly) {
     std::vector<Polygon2> holes;
     for(auto h = f->holes_begin(); h != f->holes_end(); ++h) {
       // h is Ccb_halfedge_circulator
-      holes.push_back(_boundary_to_polygon(*h));
+      auto hole_poly = _boundary_to_polygon(*h);
+      hole_poly.reverse_orientation();
+      holes.push_back(hole_poly);
       assert (holes.back().area() < 0);
     }
     result.push_back(Polygon2WithHoles(outer_boundary, holes.begin(), holes.end()));
