@@ -160,9 +160,10 @@ public:
     pl = PointLocation(env);
     auto face = env.unbounded_face();
     if (face->number_of_holes() != 1 || !face->is_unbounded()) {
-      throw std::runtime_error("Bad arrangement");
+      throw std::runtime_error("Bad arrangement. Could not determine polygon face.");
     }
-    auto f = face->holes_begin()->ptr()->twin()->face();
+    auto hole_it = face->holes_begin();
+    auto f = (*hole_it)->twin()->face();
     if (f->is_unbounded()) {
       throw std::runtime_error("Bad arrangement");
     }
