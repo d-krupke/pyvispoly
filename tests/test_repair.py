@@ -5,9 +5,9 @@ from pyvispoly import (
     Point,
     Polygon,
     PolygonWithHoles,
-    VisibilityPolygonCalculator,
-    repair
+    repair,
 )
+
 
 def test_repair():
     boundary = [
@@ -20,6 +20,7 @@ def test_repair():
     poly_with_holes = PolygonWithHoles(polygon, [])
     poly_ = repair(poly_with_holes)[0]
     assert poly_.area() == 1.0
+
 
 def test_repair_with_hole():
     boundary = [

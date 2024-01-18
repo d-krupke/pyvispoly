@@ -44,7 +44,9 @@ using Halfedge_const_handle = Arrangement_2::Halfedge_const_handle;
 using Face_handle = Arrangement_2::Face_handle;
 using PointLocation = CGAL::Arr_naive_point_location<Arrangement_2>;
 // Define the used visibility class
-typedef CGAL::Triangular_expansion_visibility_2<Arrangement_2, /*Regularization*/CGAL::Tag_true> TEV;
+typedef CGAL::Triangular_expansion_visibility_2<
+    Arrangement_2, /*Regularization*/ CGAL::Tag_true>
+    TEV;
 // using TEV = CGAL::Rotational_sweep_visibility_2<Arrangement_2>;
 
 std::vector<Point> get_sample_points(Polygon2 &poly) {
@@ -82,14 +84,12 @@ void _check_polygon(Polygon2WithHoles &poly) {
     throw std::runtime_error("Polygon has non-positive area. Cannot compute "
                              "sample points.");
   }
-  if(std::any_of(poly.holes_begin(), poly.holes_end(), [](const Polygon2 &hole) {
-    return !hole.is_simple();
-  })) {
+  if (std::any_of(poly.holes_begin(), poly.holes_end(),
+                  [](const Polygon2 &hole) { return !hole.is_simple(); })) {
     throw std::runtime_error("Hole is not simple.");
   }
-  if(std::any_of(poly.holes_begin(), poly.holes_end(), [](const Polygon2 &hole) {
-    return hole.area() >= 0;
-  })) {
+  if (std::any_of(poly.holes_begin(), poly.holes_end(),
+                  [](const Polygon2 &hole) { return hole.area() >= 0; })) {
     throw std::runtime_error("Hole has non-negative area.");
   }
 }
@@ -257,8 +257,7 @@ public:
   PointLocation pl;
 };
 
-
-template<typename EdgeHandle>
+template <typename EdgeHandle>
 Polygon2 _boundary_to_polygon(const EdgeHandle &e) {
   Polygon2 poly;
   std::vector<Point> points;
@@ -272,13 +271,12 @@ Polygon2 _boundary_to_polygon(const EdgeHandle &e) {
   return Polygon2(points.begin(), points.end());
 }
 
-template<typename FaceHandle>
-Polygon2 _face_to_polygon(const FaceHandle &fh) {
-  assert (!fh->is_unbounded());
+template <typename FaceHandle> Polygon2 _face_to_polygon(const FaceHandle &fh) {
+  assert(!fh->is_unbounded());
   return _boundary_to_polygon(fh->outer_ccb());
 }
 
-Arrangement_2 _polygon_to_arrangement(const Polygon2WithHoles & poly) {
+Arrangement_2 _polygon_to_arrangement(const Polygon2WithHoles &poly) {
   // Create a new arrangement from a polygon with holes
   Arrangement_2 env;
   std::vector<Segment2> segments;
@@ -311,12 +309,12 @@ std::vector<Polygon2WithHoles> repair(const Polygon2WithHoles &poly) {
   Arrangement_2 env = _polygon_to_arrangement(poly);
   std::vector<Polygon2WithHoles> result;
   // Get the faces
-  for(auto f = env.faces_begin(); f != env.faces_end(); ++f) {
+  for (auto f = env.faces_begin(); f != env.faces_end(); ++f) {
     // Face is a polygon if it is adjacent to the unbounded face
-    if(f->is_unbounded()) {
+    if (f->is_unbounded()) {
       continue;
     }
-    if(!f->outer_ccb()->twin()->face()->is_unbounded()) {
+    if (!f->outer_ccb()->twin()->face()->is_unbounded()) {
       continue;
     }
     // face to polygon with holes
@@ -324,14 +322,15 @@ std::vector<Polygon2WithHoles> repair(const Polygon2WithHoles &poly) {
     auto outer_boundary = _face_to_polygon(f);
     // holes
     std::vector<Polygon2> holes;
-    for(auto h = f->holes_begin(); h != f->holes_end(); ++h) {
+    for (auto h = f->holes_begin(); h != f->holes_end(); ++h) {
       // h is Ccb_halfedge_circulator
       auto hole_poly = _boundary_to_polygon(*h);
       hole_poly.reverse_orientation();
       holes.push_back(hole_poly);
-      assert (holes.back().area() < 0);
+      assert(holes.back().area() < 0);
     }
-    result.push_back(Polygon2WithHoles(outer_boundary, holes.begin(), holes.end()));
+    result.push_back(
+        Polygon2WithHoles(outer_boundary, holes.begin(), holes.end()));
   }
   return result;
 }
@@ -493,19 +492,20 @@ PYBIND11_MODULE(_cgal_bindings, m) {
              return get_sample_points_with_holes(self);
            })
       .def("area",
-            [](const Polygon2WithHoles &poly) { 
-              auto area = poly.outer_boundary().area();
-              for (const auto &hole : poly.holes()) {
-                area -= hole.area();
-              }
-              return CGAL::to_double(area);
-            })
+           [](const Polygon2WithHoles &poly) {
+             auto area = poly.outer_boundary().area();
+             for (const auto &hole : poly.holes()) {
+               area -= hole.area();
+             }
+             return CGAL::to_double(area);
+           })
       .def(
           "join",
           [](const Polygon2WithHoles &self, const Polygon2WithHoles &other) {
             std::vector<Polygon2WithHoles> result;
             Polygon2WithHoles joined;
-            if (CGAL::join(self, other, joined, /*UsePolylines=*/ CGAL::Tag_false{})) {
+            if (CGAL::join(self, other, joined,
+                           /*UsePolylines=*/CGAL::Tag_false{})) {
               result.push_back(joined);
             } else {
               result.push_back(self);
@@ -519,7 +519,8 @@ PYBIND11_MODULE(_cgal_bindings, m) {
           "intersection",
           [](const Polygon2WithHoles &self, const Polygon2WithHoles &other) {
             std::vector<Polygon2WithHoles> result;
-            CGAL::intersection(self, other, std::back_inserter(result), /*UsePolylines=*/ CGAL::Tag_false{});
+            CGAL::intersection(self, other, std::back_inserter(result),
+                               /*UsePolylines=*/CGAL::Tag_false{});
             return result;
           },
           "Computes the intersection of two polygons (with holes). Returns a "
@@ -528,7 +529,8 @@ PYBIND11_MODULE(_cgal_bindings, m) {
           "difference",
           [](const Polygon2WithHoles &self, const Polygon2WithHoles &other) {
             std::vector<Polygon2WithHoles> result;
-            CGAL::difference(self, other, std::back_inserter(result), /*UsePolylines=*/ CGAL::Tag_false{});
+            CGAL::difference(self, other, std::back_inserter(result),
+                             /*UsePolylines=*/CGAL::Tag_false{});
             return result;
           },
           "Removes the area of the other polygon. Returns a list of polygons "
@@ -547,7 +549,8 @@ PYBIND11_MODULE(_cgal_bindings, m) {
            py::arg("query_point"),
            "Check if the query point is within the polygon.");
 
-  m.def("repair", &repair, "Repair a polygon with holes that is self "
-                           "intersecting. Returns a list of polygons with "
-                           "holes.");
+  m.def("repair", &repair,
+        "Repair a polygon with holes that is self "
+        "intersecting. Returns a list of polygons with "
+        "holes.");
 }
