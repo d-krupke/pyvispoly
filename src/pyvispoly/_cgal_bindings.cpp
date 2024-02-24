@@ -163,9 +163,10 @@ public:
       throw std::runtime_error("Bad arrangement. Could not determine polygon face.");
     }
     auto hole_it = face->holes_begin();
+    assert(hole_it != face->holes_end());
     auto f = (*hole_it)->twin()->face();
     if (f->is_unbounded()) {
-      throw std::runtime_error("Bad arrangement");
+      throw std::runtime_error("Bad arrangement. Face should not be unbounded.");
     }
     interior_face = f;
   }
@@ -526,6 +527,12 @@ PYBIND11_MODULE(_cgal_bindings, m) {
           },
           "Computes the intersection of two polygons (with holes). Returns a "
           "list of polygons (with holes).")
+      .def(
+        "do_intersect",
+        [](const Polygon2WithHoles &self, const Polygon2WithHoles &other) {
+          return CGAL::do_intersect(self, other);
+        },
+        "Check if two polygons (with holes) intersect. Returns a boolean.")
       .def(
           "difference",
           [](const Polygon2WithHoles &self, const Polygon2WithHoles &other) {

@@ -206,6 +206,7 @@ distributing this library.
 
 ## Changelog
 
+- **0.3.0** Added `do_intersect`.
 - **0.2.0** Made the library more robust and added a `repair`-method as the
   boolean operations are not always guaranteed to produce valid polygons. Note
   that this is just kind of a hack and may not always work.
