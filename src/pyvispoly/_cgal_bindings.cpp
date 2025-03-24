@@ -201,13 +201,13 @@ public:
     const Arrangement_2::Halfedge_const_handle *e;
     const Arrangement_2::Face_const_handle *f;
     TEV tev(env);
-    if (f = boost::get<Arrangement_2::Face_const_handle>(&location)) {
+    if ((f = std::get_if<Arrangement_2::Face_const_handle>(&location))) {
       if (*f != interior_face) {
         throw std::runtime_error(
             "Query point is in a face, but not in the interior face");
       }
       return tev.compute_visibility(query_point, interior_face, output_arr);
-    } else if (v = boost::get<Arrangement_2::Vertex_const_handle>(&location)) {
+    } else if ((v = std::get_if<Arrangement_2::Vertex_const_handle>(&location))) {
       auto e_ = (*v)->incident_halfedges();
       if (e_->face() == interior_face) {
         return tev.compute_visibility(query_point, e_, output_arr);
@@ -221,8 +221,7 @@ public:
       }
       throw std::runtime_error(
           "Query point is on a vertex, but not in interior face");
-    } else if (e = boost::get<Arrangement_2::Halfedge_const_handle>(
-                   &location)) {
+    } else if ((e = std::get_if<Arrangement_2::Halfedge_const_handle>(&location))) {
       if ((*e)->face() == interior_face) {
         return tev.compute_visibility(query_point, *e, output_arr);
       } else if ((*e)->twin()->face() == interior_face) {

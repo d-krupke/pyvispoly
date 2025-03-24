@@ -14,7 +14,7 @@ setup(
     # https://scikit-build.readthedocs.io/en/latest/usage.html#setup-options
     # https://github.com/d-krupke/skbuild-conan#usage
     name="pyvispoly",
-    version="0.3.0",
+    version="0.3.1",
     author="Dominik Krupke",
     license="LICENSE",
     description="CGAL's visibility polygons in Python",
@@ -26,6 +26,6 @@ setup(
     install_requires=[
         "matplotlib>=3.4.2",
     ],  # Python Dependencies
-    conan_requirements=["fmt/[>=10.0.0]", "cgal/[>=5.6]"],  # C++ Dependencies
+    conan_requirements=["fmt/[>=10.0.0]", "cgal/[>=6.0]"],  # C++ Dependencies
     cmake_minimum_required_version="3.23",
 )
