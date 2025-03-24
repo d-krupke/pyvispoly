@@ -26,8 +26,7 @@ setup(
     install_requires=[
         "matplotlib>=3.4.2",
     ],  # Python Dependencies
-    conan_requirements=["fmt/[>=10.0.0]", "cgal/[>=6.0]",
-        "b2/[>=5.0.0]"],  # C++ Dependencies
+    conan_requirements=["fmt/[>=10.0.0]", "cgal/[>=6.0]"],  # C++ Dependencies
     cmake_minimum_required_version="3.23",
     conan_profile_settings={"compiler.cppstd": "17"},  # C++17
 )

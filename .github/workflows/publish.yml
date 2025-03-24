@@ -23,6 +23,7 @@ jobs:
         env:
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_28
           CIBW_BUILD: "cp3{11,12,13}-*"
+          CIBW_SKIP: "*-musllinux*"
 
       - uses: actions/upload-artifact@v4
         with:
