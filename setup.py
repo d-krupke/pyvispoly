@@ -22,7 +22,7 @@ setup(
     long_description_content_type="text/markdown",
     packages=find_packages("src"),  # Include all packages in `./src`.
     package_dir={"": "src"},  # The root for our python package is in `./src`.
-    python_requires=">=3.7",  # lowest python version supported.
+    python_requires=">=3.8",  # lowest python version supported.
     install_requires=[
         "matplotlib>=3.4.2",
     ],  # Python Dependencies
