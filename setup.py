@@ -14,7 +14,7 @@ setup(
     # https://scikit-build.readthedocs.io/en/latest/usage.html#setup-options
     # https://github.com/d-krupke/skbuild-conan#usage
     name="pyvispoly",
-    version="0.3.1",
+    version="0.3.2",
     author="Dominik Krupke",
     license="LICENSE",
     description="CGAL's visibility polygons in Python",
