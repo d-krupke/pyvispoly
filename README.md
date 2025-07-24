@@ -206,6 +206,7 @@ distributing this library.
 
 ## Changelog
 
+- **0.3.2** Upgraded pybind11 to support cmake 4.x compilation
 - **0.3.1** Using CGAL6
 - **0.3.0** Added `do_intersect`.
 - **0.2.0** Made the library more robust and added a `repair`-method as the
